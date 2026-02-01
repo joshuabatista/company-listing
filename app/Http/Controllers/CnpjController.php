@@ -37,7 +37,7 @@ class CnpjController extends Controller
                 ], 404);
             }
 
-            dd( $data );
+            // dd( $data );
 
             return response()->json([
                 'nome'       => $data['nome'] ?? null,

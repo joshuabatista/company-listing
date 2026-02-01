@@ -24,7 +24,7 @@
     v-model="isModalOpen"
     :company="selectedCompany"
     :loading="isSaving"
-    @save="handleSaveCompany"
+    @save="salvarEmpresa"
     @close="handleCloseModal"
   />
 </template>
@@ -36,6 +36,7 @@ import CompaniesInput from '../components/CompaniesInput.vue';
 import CompaniesAddCompany from '../components/CompaniesAddCompany.vue';
 import CompanyModal from '../components/CompanyModal.vue';
 import { useModal } from '../../../composables/useModal.js';
+import axios from 'axios';
 
 const searchQuery = ref('');
 
@@ -54,30 +55,44 @@ const openEditModal = (company) => {
 };
 
 // Salvar empresa
-const handleSaveCompany = async (formData) => {
+const salvarEmpresa = async (formData) => {
   isSaving.value = true;
-  
+
   try {
-    // TODO: Aqui vai a chamada para a API
-    console.log('Salvando empresa:', formData);
+    const payload = {
+      cnpj: formData.cnpj.replace(/\D/g, ''),
+      razao_social: formData.razao_social,
+      email: formData.email,
+      telefone: formData.telefone,
+      logradouro: formData.logradouro,
+      numero: formData.numero,
+      estado: formData.estado,
+      cidade: formData.cidade,
+      descricao: formData.descricao
+    }
     
-    // Simulando delay de API
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const response = await axios.post('/api/companies', payload);
     
-    // TODO: Adicionar toast de sucesso
-    alert(selectedCompany.value ? 'Empresa atualizada com sucesso!' : 'Empresa cadastrada com sucesso!');
+    console.log('Empresa salva com sucesso:', response.data);
+    alert('Empresa cadastrada com sucesso!');
     
     closeModal();
   } catch (error) {
     console.error('Erro ao salvar empresa:', error);
-    // TODO: Adicionar toast de erro
-    alert('Erro ao salvar empresa. Tente novamente.');
+    
+    if (error.response) {
+      // Erro de validação ou do servidor
+      console.error('Dados do erro:', error.response.data);
+      alert(`Erro ao salvar empresa: ${error.response.data.message || 'Erro desconhecido'}`);
+    } else {
+      // Erro de rede
+      alert('Erro de conexão. Verifique sua internet e tente novamente.');
+    }
   } finally {
     isSaving.value = false;
   }
 };
 
-// Fechar modal
 const handleCloseModal = () => {
   selectedCompany.value = null;
 };

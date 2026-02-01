@@ -21,19 +21,19 @@
     </div>
 
     <div class="form-group">
-      <label for="name" class="form-label">
+      <label for="razao_social" class="form-label">
         Nome da Empresa <span class="required">*</span>
       </label>
       <input
-        id="name"
-        v-model="formData.name"
+        id="razao_social"
+        v-model="formData.razao_social"
         type="text"
         class="form-input"
-        :class="{ 'form-input--error': errors.name }"
+        :class="{ 'form-input--error': errors.razao_social }"
         placeholder="Ex: Tech Solutions LTDA"
-        @blur="validateField('name')"
+        @blur="validateField('razao_social')"
       />
-      <span v-if="errors.name" class="form-error">{{ errors.name }}</span>
+      <span v-if="errors.razao_social" class="form-error">{{ errors.razao_social }}</span>
     </div>
 
     <div class="form-group">
@@ -53,30 +53,30 @@
     </div>
 
     <div class="form-group">
-      <label for="phone" class="form-label">
+      <label for="telefone" class="form-label">
         Telefone <span class="required">*</span>
       </label>
       <input
-        id="phone"
-        v-model="formData.phone"
+        id="telefone"
+        v-model="formData.telefone"
         type="text"
         class="form-input"
-        :class="{ 'form-input--error': errors.phone }"
+        :class="{ 'form-input--error': errors.telefone }"
         placeholder="(00) 00000-0000"
         maxlength="15"
-        @input="formatPhone"
-        @blur="validateField('phone')"
+        @input="formatarTelefone"
+        @blur="validateField('telefone')"
       />
-      <span v-if="errors.phone" class="form-error">{{ errors.phone }}</span>
+      <span v-if="errors.telefone" class="form-error">{{ errors.telefone }}</span>
     </div>
 
     <div class="form-group">
-      <label for="address" class="form-label">
+      <label for="logradouro" class="form-label">
         Endereço
       </label>
       <input
-        id="address"
-        v-model="formData.address"
+        id="logradouro"
+        v-model="formData.logradouro"
         type="text"
         class="form-input"
         placeholder="Rua"
@@ -98,12 +98,12 @@
       </div>
 
       <div class="form-group">
-        <label for="city" class="form-label">
+        <label for="cidade" class="form-label">
           Cidade
         </label>
         <input
-          id="city"
-          v-model="formData.city"
+          id="cidade"
+          v-model="formData.cidade"
           type="text"
           class="form-input"
           placeholder="São Paulo"
@@ -124,12 +124,12 @@
     </div>
 
     <div class="form-group">
-      <label for="description" class="form-label">
+      <label for="descricao" class="form-label">
         Descrição
       </label>
       <textarea
-        id="description"
-        v-model="formData.description"
+        id="descricao"
+        v-model="formData.descricao"
         class="form-textarea"
         rows="4"
         placeholder="Breve descrição sobre a empresa..."
@@ -152,21 +152,21 @@ const emit = defineEmits(['submit', 'update:formData']);
 
 
 const formData = reactive({
-  name: '',
+  razao_social: '',
   cnpj: '',
   email: '',
-  phone: '',
-  address: '',
-  city: '',
+  telefone: '',
+  logradouro: '',
+  cidade: '',
   estado: '',
-  description: ''
+  descricao: ''
 });
 
 const errors = reactive({
-  name: '',
+  razao_social: '',
   cnpj: '',
   email: '',
-  phone: ''
+  telefone: ''
 });
 
 if (props.company) {
@@ -177,11 +177,11 @@ const validateField = (field) => {
   errors[field] = '';
 
   switch (field) {
-    case 'name':
-      if (!formData.name.trim()) {
-        errors.name = 'Nome da empresa é obrigatório';
-      } else if (formData.name.length < 3) {
-        errors.name = 'Nome deve ter pelo menos 3 caracteres';
+    case 'razao_social':
+      if (!formData.razao_social.trim()) {
+        errors.razao_social = 'Nome da empresa é obrigatório';
+      } else if (formData.razao_social.length < 3) {
+        errors.razao_social = 'Nome deve ter pelo menos 3 caracteres';
       }
       break;
 
@@ -201,21 +201,21 @@ const validateField = (field) => {
       }
       break;
 
-    case 'phone':
-      if (!formData.phone.trim()) {
-        errors.phone = 'Telefone é obrigatório';
-      } else if (formData.phone.replace(/\D/g, '').length < 10) {
-        errors.phone = 'Telefone inválido';
+    case 'telefone':
+      if (!formData.telefone.trim()) {
+        errors.telefone = 'Telefone é obrigatório';
+      } else if (formData.telefone.replace(/\D/g, '').length < 10) {
+        errors.telefone = 'Telefone inválido';
       }
       break;
   }
 };
 
 const validateForm = () => {
-  validateField('name');
+  validateField('razao_social');
   validateField('cnpj');
   validateField('email');
-  validateField('phone');
+  validateField('telefone');
 
   return !Object.values(errors).some(error => error !== '');
 };
@@ -239,7 +239,7 @@ const formatCNPJ = (event) => {
   formData.cnpj = value;
 };
 
-const formatPhone = (event) => {
+const formatarTelefone = (event) => {
   let value = event.target.value.replace(/\D/g, '');
   
   if (value.length <= 11) {
@@ -252,7 +252,7 @@ const formatPhone = (event) => {
     }
   }
   
-  formData.phone = value;
+  formData.telefone = value;
 };
 
 const isValidEmail = (email) => {
@@ -312,17 +312,14 @@ const buscarCNPJ = async () => {
 
     const response = await fetch(`/api/cnpj/${cnpjLimpo}`);
 
-    const data = await response.json();
-
-    console.log(data);
-    
+    const data = await response.json();    
 
     if (response.ok) {
-      formData.name = data.nome || '';
+      formData.razao_social = data.nome || '';
       formData.email = data.email || '';
-      formData.phone = data.telefone || '';
-      formData.address = data.logradouro || '';
-      formData.city = data.municipio || '';
+      formData.telefone = data.telefone || '';
+      formData.logradouro = data.logradouro || '';
+      formData.cidade = data.municipio || '';
       formData.estado = data.uf || '';
     } else {
       loadingCNPJ.error = data.message || 'Erro ao buscar dados do CNPJ.';
