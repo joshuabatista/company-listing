@@ -1,3 +1,6 @@
+<?php
+// dd(PHP_VERSION, php_ini_loaded_file());
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,7 +11,8 @@
     <title>Listagem de Empresas</title>
 
 
-    @vite('resources/js/app.js')
+    {{-- @vite('resources/js/app.js') --}}
+    @vite(['resources/js/app.js'])
 </head>
 <body class="">
     <div id="app"></div>

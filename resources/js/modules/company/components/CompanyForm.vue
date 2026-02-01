@@ -1,5 +1,25 @@
 <template>
   <form @submit.prevent="handleSubmit" class="company-form">
+    
+    <div class="form-group">
+      <label for="cnpj" class="form-label">
+        CNPJ <span class="required">*</span>
+      </label>
+      <input
+        id="cnpj"
+        v-model="formData.cnpj"
+        type="text"
+        class="form-input"
+        :class="{ 'form-input--error': errors.cnpj }"
+        placeholder="00.000.000/0000-00"
+        maxlength="18"
+        @input="formatCNPJ"
+        @blur="() => { validateField('cnpj'); buscarCNPJ(); }"
+      />
+      <span v-if="loadingCNPJ.status" class="form-info">Buscando dados do CNPJ...</span>
+      <span v-if="errors.cnpj" class="form-error">{{ errors.cnpj }}</span>
+    </div>
+
     <div class="form-group">
       <label for="name" class="form-label">
         Nome da Empresa <span class="required">*</span>
@@ -14,24 +34,6 @@
         @blur="validateField('name')"
       />
       <span v-if="errors.name" class="form-error">{{ errors.name }}</span>
-    </div>
-
-    <div class="form-group">
-      <label for="cnpj" class="form-label">
-        CNPJ <span class="required">*</span>
-      </label>
-      <input
-        id="cnpj"
-        v-model="formData.cnpj"
-        type="text"
-        class="form-input"
-        :class="{ 'form-input--error': errors.cnpj }"
-        placeholder="00.000.000/0000-00"
-        maxlength="18"
-        @input="formatCNPJ"
-        @blur="validateField('cnpj')"
-      />
-      <span v-if="errors.cnpj" class="form-error">{{ errors.cnpj }}</span>
     </div>
 
     <div class="form-group">
@@ -77,12 +79,24 @@
         v-model="formData.address"
         type="text"
         class="form-input"
-        placeholder="Rua, número, bairro"
+        placeholder="Rua"
       />
     </div>
 
-    <!-- Cidade e Estado -->
     <div class="form-row">
+      <div class="form-group">
+        <label for="numero" class="form-label">
+          Numero
+        </label>
+        <input
+          id="numero"
+          v-model="formData.numero"
+          type="text"
+          class="form-input"
+          placeholder="Número do endereço"
+        />
+      </div>
+
       <div class="form-group">
         <label for="city" class="form-label">
           Cidade
@@ -97,37 +111,18 @@
       </div>
 
       <div class="form-group">
-        <label for="state" class="form-label">
+        <label for="estado" class="form-label">
           Estado
         </label>
-        <select
-          id="state"
-          v-model="formData.state"
+        <input
+          id="estado"
+          v-model="formData.estado"
+          type="text"
           class="form-input"
-        >
-          <option value="">Selecione</option>
-          <option v-for="state in brazilianStates" :key="state" :value="state">
-            {{ state }}
-          </option>
-        </select>
+          placeholder="SP"/>
       </div>
     </div>
 
-    <!-- Website -->
-    <div class="form-group">
-      <label for="website" class="form-label">
-        Website
-      </label>
-      <input
-        id="website"
-        v-model="formData.website"
-        type="url"
-        class="form-input"
-        placeholder="https://www.empresa.com.br"
-      />
-    </div>
-
-    <!-- Descrição -->
     <div class="form-group">
       <label for="description" class="form-label">
         Descrição
@@ -155,11 +150,6 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'update:formData']);
 
-const brazilianStates = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-];
 
 const formData = reactive({
   name: '',
@@ -168,8 +158,7 @@ const formData = reactive({
   phone: '',
   address: '',
   city: '',
-  state: '',
-  website: '',
+  estado: '',
   description: ''
 });
 
@@ -237,7 +226,6 @@ const handleSubmit = () => {
   }
 };
 
-// Formatação de CNPJ
 const formatCNPJ = (event) => {
   let value = event.target.value.replace(/\D/g, '');
   
@@ -251,7 +239,6 @@ const formatCNPJ = (event) => {
   formData.cnpj = value;
 };
 
-// Formatação de Telefone
 const formatPhone = (event) => {
   let value = event.target.value.replace(/\D/g, '');
   
@@ -268,13 +255,11 @@ const formatPhone = (event) => {
   formData.phone = value;
 };
 
-// Validação de Email
 const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-// Validação de CNPJ
 const isValidCNPJ = (cnpj) => {
   cnpj = cnpj.replace(/\D/g, '');
   
@@ -307,9 +292,49 @@ const isValidCNPJ = (cnpj) => {
   
   result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
   if (result != digits.charAt(1)) return false;
-  
   return true;
 };
+
+const loadingCNPJ = reactive({
+  status: false,
+  error: ''
+});
+
+const buscarCNPJ = async () => {
+  
+  const cnpjLimpo = formData.cnpj.replace(/\D/g, '')
+
+  if(!isValidCNPJ(formData.cnpj)) return
+
+  try {
+    loadingCNPJ.status = true
+    loadingCNPJ.error = ''
+
+    const response = await fetch(`/api/cnpj/${cnpjLimpo}`);
+
+    const data = await response.json();
+
+    console.log(data);
+    
+
+    if (response.ok) {
+      formData.name = data.nome || '';
+      formData.email = data.email || '';
+      formData.phone = data.telefone || '';
+      formData.address = data.logradouro || '';
+      formData.city = data.municipio || '';
+      formData.estado = data.uf || '';
+    } else {
+      loadingCNPJ.error = data.message || 'Erro ao buscar dados do CNPJ.';
+    }
+    
+  } catch (e) {
+    loadingCNPJ.error = 'Erro de conexão';
+  } finally {
+    loadingCNPJ.status = false;
+  }
+  
+}
 
 defineExpose({
   validateForm,
@@ -336,7 +361,7 @@ watch(formData, (newValue) => {
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
 }
 
@@ -394,5 +419,10 @@ watch(formData, (newValue) => {
 
 select.form-input {
   cursor: pointer;
+}
+
+.form-info {
+  font-size: 0.85rem;
+  color: #2563eb;
 }
 </style>
