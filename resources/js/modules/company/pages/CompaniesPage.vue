@@ -40,17 +40,30 @@
     :company="selectedCompany"
     :loading="isSaving"
     @save="salvarEmpresa"
+    @delete="excluirEmpresa"
     @close="handleCloseModal"
+  />
+
+  <ConfirmDialog
+    ref="confirmDialogRef"
+    :title="confirmDialog.title"
+    :message="confirmDialog.message"
+    :confirmText="confirmDialog.confirmText"
+    :cancelText="confirmDialog.cancelText"
+    :variant="confirmDialog.variant"
+    @confirm="confirmDialog.onConfirm"
+    @cancel="confirmDialog.onCancel"
   />
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, reactive } from 'vue';
 import AppHeader from '../../../components/layout/AppHeader.vue';
 import CompaniesInput from '../components/CompaniesInput.vue';
 import CompaniesAddCompany from '../components/CompaniesAddCompany.vue';
 import CompanyCard from '../components/CompanyCard.vue';
 import CompanyModal from '../components/CompanyModal.vue';
+import ConfirmDialog from '../../../components/common/ConfirmDialog.vue';
 import { useModal } from '../../../composables/useModal.js';
 import { useToast } from '../../../composables/useToast.js';
 import axios from 'axios';
@@ -63,6 +76,17 @@ const { isOpen: isModalOpen, open: openModal, close: closeModal } = useModal();
 const toast = useToast();
 const selectedCompany = ref(null);
 const isSaving = ref(false);
+const confirmDialogRef = ref(null);
+
+const confirmDialog = reactive({
+  title: '',
+  message: '',
+  confirmText: 'Confirmar',
+  cancelText: 'Cancelar',
+  variant: 'danger',
+  onConfirm: () => {},
+  onCancel: () => {}
+});
 
 const filteredCompanies = computed(() => {
   if (!searchQuery.value) {
@@ -143,6 +167,44 @@ const salvarEmpresa = async (formData) => {
 
 const handleCloseModal = () => {
   selectedCompany.value = null;
+};
+
+const excluirEmpresa = (company) => {
+  confirmDialog.title = 'Excluir Empresa';
+  confirmDialog.message = `Tem certeza que deseja excluir a empresa \n\n "${company.razao_social}"?\n\nEsta ação não poderá ser desfeita.`;
+  confirmDialog.confirmText = 'Excluir';
+  confirmDialog.cancelText = 'Cancelar';
+  confirmDialog.variant = 'danger';
+  
+  confirmDialog.onConfirm = async () => {
+    isSaving.value = true;
+    
+    try {
+      await axios.delete(`/api/companies/${company.id}`);
+      
+      toast.success('Empresa excluída com sucesso!');
+      
+      await fetchCompanies();
+      
+      closeModal();
+    } catch (error) {
+      console.error('Erro ao excluir empresa:', error);
+      
+      if (error.response) {
+        const errorMessage = error.response.data.message || 'Erro ao excluir empresa';
+        toast.error(errorMessage);
+      } else {
+        toast.error('Erro de conexão. Verifique sua internet e tente novamente.');
+      }
+    } finally {
+      isSaving.value = false;
+    }
+  };
+  
+  confirmDialog.onCancel = () => {
+  };
+  
+  confirmDialogRef.value.open();
 };
 
 onMounted(() => {

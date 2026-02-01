@@ -66,4 +66,15 @@ class CompanyController extends Controller
             'data'    => $company,
         ], 200);
     }
+
+    public function destroy($id)
+    {
+        $company = Company::findOrFail($id);
+        $company->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Empresa excluída com sucesso',
+        ], 200);
+    }
 }

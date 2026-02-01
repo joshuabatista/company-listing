@@ -5,28 +5,39 @@
     size="lg"
     @close="handleClose"
   >
-    <!-- Body do Modal -->
     <CompanyForm
       ref="companyFormRef"
       :company="company"
       @submit="handleSubmit"
     />
 
-    <!-- Footer do Modal -->
     <template #footer>
-      <BaseButton
-        variant="outline"
-        @click="handleClose"
-      >
-        Cancelar
-      </BaseButton>
-      <BaseButton
-        variant="primary"
-        :loading="loading"
-        @click="handleSave"
-      >
-        {{ isEditing ? 'Atualizar' : 'Salvar' }}
-      </BaseButton>
+      <div style="display: flex; justify-content: space-between; width: 100%;">
+        <div>
+          <BaseButton
+            v-if="isEditing"
+            variant="danger"
+            @click="handleDelete"
+          >
+            Excluir
+          </BaseButton>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <BaseButton
+            variant="outline"
+            @click="handleClose"
+          >
+            Cancelar
+          </BaseButton>
+          <BaseButton
+            variant="primary"
+            :loading="loading"
+            @click="handleSave"
+          >
+            {{ isEditing ? 'Atualizar' : 'Salvar' }}
+          </BaseButton>
+        </div>
+      </div>
     </template>
   </BaseModal>
 </template>
@@ -52,7 +63,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:modelValue', 'save', 'close']);
+const emit = defineEmits(['update:modelValue', 'save', 'close', 'delete']);
 
 const companyFormRef = ref(null);
 
@@ -81,5 +92,9 @@ const handleSave = () => {
 
 const handleSubmit = (formData) => {
   emit('save', formData);
+};
+
+const handleDelete = () => {
+  emit('delete', props.company);
 };
 </script>
