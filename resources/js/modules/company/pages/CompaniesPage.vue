@@ -36,11 +36,13 @@ import CompaniesInput from '../components/CompaniesInput.vue';
 import CompaniesAddCompany from '../components/CompaniesAddCompany.vue';
 import CompanyModal from '../components/CompanyModal.vue';
 import { useModal } from '../../../composables/useModal.js';
+import { useToast } from '../../../composables/useToast.js';
 import axios from 'axios';
 
 const searchQuery = ref('');
 
 const { isOpen: isModalOpen, open: openModal, close: closeModal } = useModal();
+const toast = useToast();
 const selectedCompany = ref(null);
 const isSaving = ref(false);
 
@@ -54,7 +56,6 @@ const openEditModal = (company) => {
   openModal();
 };
 
-// Salvar empresa
 const salvarEmpresa = async (formData) => {
   isSaving.value = true;
 
@@ -73,20 +74,16 @@ const salvarEmpresa = async (formData) => {
     
     const response = await axios.post('/api/companies', payload);
     
-    console.log('Empresa salva com sucesso:', response.data);
-    alert('Empresa cadastrada com sucesso!');
-    
+    toast.success('Empresa cadastrada com sucesso!');
     closeModal();
   } catch (error) {
     console.error('Erro ao salvar empresa:', error);
     
     if (error.response) {
-      // Erro de validação ou do servidor
-      console.error('Dados do erro:', error.response.data);
-      alert(`Erro ao salvar empresa: ${error.response.data.message || 'Erro desconhecido'}`);
+      const errorMessage = error.response.data.message || 'Erro ao salvar empresa';
+      toast.error(errorMessage);
     } else {
-      // Erro de rede
-      alert('Erro de conexão. Verifique sua internet e tente novamente.');
+      toast.error('Erro de conexão. Verifique sua internet e tente novamente.');
     }
   } finally {
     isSaving.value = false;
