@@ -18,23 +18,22 @@ class CnpjController extends Controller
 
         try {
             $response = Http::timeout(10)
+                ->withOptions([
+                    'verify' => false, 
+                ])
                 ->withHeaders([
                     'User-Agent' => 'Laravel CNPJ Lookup'
                 ])
                 ->get("https://www.receitaws.com.br/v1/cnpj/{$cnpj}");
 
-            if (!$response->successful()) {
-                return response()->json([
-                    'error' => 'Erro ao consultar CNPJ na Receita Federal.'
-                ], 500);
-            }
-
             $data = $response->json();
 
-            if (isset($data['status']) && $data['status'] === 'ERROR') {
+            if (!$response->successful() || (isset($data['status']) && $data['status'] === 'ERROR')) {
                 return response()->json([
-                    'error' => $data['message'] ?? 'CNPJ não encontrado'
-                ], 404);
+                    'error' => $data['message'] ?? 'CNPJ não encontrado ou erro ao consultar a Receita Federal.',
+                    'status_code' => $response->status(),
+                    'response_data' => $data
+                ], $response->status() === 429 ? 429 : 404);
             }
 
             // dd( $data );
