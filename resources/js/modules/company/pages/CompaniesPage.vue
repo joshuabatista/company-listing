@@ -114,9 +114,15 @@ const salvarEmpresa = async (formData) => {
       descricao: formData.descricao
     }
     
-    const response = await axios.post('/api/companies', payload);
+    let response;
     
-    toast.success('Empresa cadastrada com sucesso!');
+    if (selectedCompany.value?.id) {
+      response = await axios.put(`/api/companies/${selectedCompany.value.id}`, payload);
+      toast.success('Empresa atualizada com sucesso!');
+    } else {
+      response = await axios.post('/api/companies', payload);
+      toast.success('Empresa cadastrada com sucesso!');
+    }
     
     await fetchCompanies();
     
