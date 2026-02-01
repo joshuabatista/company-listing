@@ -1,5 +1,5 @@
 <template>
-    <div class="company-card">
+    <div class="company-card" @click="handleClick">
         <div class="icon-wrapper">
             <Building />
         </div>
@@ -26,6 +26,12 @@ const props = defineProps({
     }
 });
 
+const emit = defineEmits(['click']);
+
+const handleClick = () => {
+    emit('click', props.company);
+};
+
 const formatCnpj = (cnpj) => {
     if (!cnpj) return '';
     return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
@@ -44,6 +50,7 @@ const formatCnpj = (cnpj) => {
     padding: 1rem 1.5rem 1rem 5rem;
     background: white;
     transition: all 0.2s ease;
+    cursor: pointer;
 
     &:hover {
         background: #f9fafb;

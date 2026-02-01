@@ -25,6 +25,7 @@
           v-for="company in filteredCompanies" 
           :key="company.id"
           :company="company"
+          @click="openViewModal"
         />
       </div>
       
@@ -92,8 +93,8 @@ const openAddModal = () => {
   openModal();
 };
 
-const openEditModal = (company) => {
-  selectedCompany.value = company;
+const openViewModal = (company) => {
+  selectedCompany.value = { ...company };
   openModal();
 };
 

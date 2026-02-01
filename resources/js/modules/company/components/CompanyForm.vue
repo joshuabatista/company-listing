@@ -157,6 +157,7 @@ const formData = reactive({
   email: '',
   telefone: '',
   logradouro: '',
+  numero: '',
   cidade: '',
   estado: '',
   descricao: ''
@@ -170,7 +171,28 @@ const errors = reactive({
 });
 
 if (props.company) {
-  Object.assign(formData, props.company);
+  formData.razao_social = props.company.razao_social || '';
+  formData.cnpj = props.company.cnpj || '';
+  formData.email = props.company.email || '';
+  formData.telefone = props.company.telefone || '';
+  formData.logradouro = props.company.logradouro || '';
+  formData.numero = props.company.numero || '';
+  formData.cidade = props.company.cidade || '';
+  formData.estado = props.company.estado || '';
+  formData.descricao = props.company.descricao || '';
+  
+  if (formData.cnpj && formData.cnpj.length === 14) {
+    formData.cnpj = formData.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+  }
+  
+  if (formData.telefone && !formData.telefone.includes('(')) {
+    const tel = formData.telefone.replace(/\D/g, '');
+    if (tel.length === 11) {
+      formData.telefone = tel.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+    } else if (tel.length === 10) {
+      formData.telefone = tel.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
+    }
+  }
 }
 
 const validateField = (field) => {
