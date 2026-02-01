@@ -9,6 +9,16 @@ use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
+    public function index()
+    {
+        $companies = Company::orderBy('created_at', 'desc')->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $companies,
+        ], 200);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

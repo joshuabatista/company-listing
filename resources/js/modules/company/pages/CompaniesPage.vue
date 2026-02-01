@@ -7,7 +7,7 @@
       <CompaniesInput 
         v-model="searchQuery"
         input-type="text" 
-        placeholder="Buscar empresa..."
+        placeholder="Buscar empresa por nome..."
       />
     </div>
     
@@ -16,7 +16,21 @@
     </div>
 
     <div class="companies-list">
-      <p class="empty-state">Nenhuma empresa cadastrada ainda.</p>
+      <div v-if="isLoading" class="loading-state">
+        <p>Carregando empresas...</p>
+      </div>
+      
+      <div v-else-if="filteredCompanies.length > 0" class="companies-grid">
+        <CompanyCard 
+          v-for="company in filteredCompanies" 
+          :key="company.id"
+          :company="company"
+        />
+      </div>
+      
+      <p v-else class="empty-state">
+        {{ searchQuery ? 'Nenhuma empresa encontrada com esse nome.' : 'Nenhuma empresa cadastrada ainda.' }}
+      </p>
     </div>
   </div>
 
@@ -30,21 +44,48 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import AppHeader from '../../../components/layout/AppHeader.vue';
 import CompaniesInput from '../components/CompaniesInput.vue';
 import CompaniesAddCompany from '../components/CompaniesAddCompany.vue';
+import CompanyCard from '../components/CompanyCard.vue';
 import CompanyModal from '../components/CompanyModal.vue';
 import { useModal } from '../../../composables/useModal.js';
 import { useToast } from '../../../composables/useToast.js';
 import axios from 'axios';
 
 const searchQuery = ref('');
+const companies = ref([]);
+const isLoading = ref(false);
 
 const { isOpen: isModalOpen, open: openModal, close: closeModal } = useModal();
 const toast = useToast();
 const selectedCompany = ref(null);
 const isSaving = ref(false);
+
+const filteredCompanies = computed(() => {
+  if (!searchQuery.value) {
+    return companies.value;
+  }
+  
+  const query = searchQuery.value.toLowerCase();
+  return companies.value.filter(company => 
+    company.razao_social.toLowerCase().includes(query)
+  );
+});
+
+const fetchCompanies = async () => {
+  isLoading.value = true;
+  try {
+    const response = await axios.get('/api/companies');
+    companies.value = response.data.data;
+  } catch (error) {
+    console.error('Erro ao buscar empresas:', error);
+    toast.error('Erro ao carregar empresas');
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 const openAddModal = () => {
   selectedCompany.value = null;
@@ -75,6 +116,9 @@ const salvarEmpresa = async (formData) => {
     const response = await axios.post('/api/companies', payload);
     
     toast.success('Empresa cadastrada com sucesso!');
+    
+    await fetchCompanies();
+    
     closeModal();
   } catch (error) {
     console.error('Erro ao salvar empresa:', error);
@@ -93,6 +137,10 @@ const salvarEmpresa = async (formData) => {
 const handleCloseModal = () => {
   selectedCompany.value = null;
 };
+
+onMounted(() => {
+  fetchCompanies();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -117,10 +165,27 @@ const handleCloseModal = () => {
   margin-top: 2rem;
 }
 
+.loading-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  
+  p {
+    color: #6b7280;
+    font-size: 1rem;
+  }
+}
+
+.companies-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .empty-state {
   text-align: center;
   color: #6b7280;
   font-size: 1rem;
   padding: 3rem 1rem;
 }
+
 </style>
